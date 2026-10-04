@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מבשר ניימן הפקות - מערכת שידור והקרנה</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 5px;
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #090514;
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4c1d95;
+            border-radius: 9999px;
+            border: 1px solid #6b21a8;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #9333ea;
+        }
+
+        button, input, select, label {
+            outline: none !important;
+        }
+
+        .wave-bar-active {
+            background: linear-gradient(180deg, #e9d5ff 0%, #a855f7 100%);
+            box-shadow: 0 0 6px rgba(168, 85, 247, 0.7);
+        }
+        .wave-bar-idle {
+            background-color: #332052;
+        }
+        .wave-bar-idle:hover {
+            background-color: #581c87;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            background: #c084fc;
+            border: 2px solid #a855f7;
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.8);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans">
+
+    <header class="h-12 py-1.5 bg-slate-900/90 border-b border-purple-900/30 px-3.5 flex items-center justify-between shrink-0 z-30">
+        <div class="flex items-center space-x-3 space-x-reverse">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-700 via-purple-600 to-fuchsia-600 flex items-center justify-center shadow-md shadow-purple-900/40 font-black text-sm text-white border border-purple-400/30">
+                נ
+            </div>
+            <div>
+                <h1 class="text-xs font-bold text-white tracking-wide">מבשר ניימן הפקות</h1>
+                <p class="text-[9px] text-purple-400 font-medium">מערכת שידור, הקרנה וסאונד בלייב</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2 space-x-reverse">
+            <button id="btnOpenProjector" class="bg-gradient-to-r from-purple-700 to-purple-600 hover:from-purple-600 hover:to-purple-500 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-md shadow-purple-950/80 flex items-center space-x-1.5 space-x-reverse transition active:scale-95 border border-purple-400/30">
+                <svg class="w-4 h-4 text-purple-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <span>פתח מסך מקרן</span>
+            </button>
+
+            <button id="btnResetData" title="איפוס נתונים" class="bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-400 p-1.5 rounded-lg border border-purple-900/30 hover:border-rose-800/50 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 min-h-[220px] flex flex-col md:flex-row p-2 gap-2 overflow-hidden">
+        
+        <!-- Monitor Preview Box -->
+        <section class="w-full md:w-72 shrink-0 bg-slate-900/90 border border-purple-900/40 rounded-xl p-2.5 flex flex-col justify-between shadow-xl">
+            <div class="flex flex-col h-full justify-between space-y-2">
+                <!-- Box Title -->
+                <div class="flex items-center justify-between pb-1 border-b border-purple-900/30">
+                    <span class="text-xs font-bold text-purple-200 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse shadow-sm shadow-purple-500"></span>
+                        תצוגה מקדימה למקרן
+                    </span>
+                    <button id="btnClearProjTop" class="text-[9px] text-slate-400 hover:text-purple-300 transition bg-slate-950 px-1.5 py-0.5 rounded border border-purple-900/40">
+                        נקה מקרן
+                    </button>
+                </div>
+
+                <!-- Live Media Display Screen -->
+                <div class="relative w-full flex-1 min-h-[120px] bg-black rounded-lg overflow-hidden border border-purple-900/50 flex items-center justify-center shadow-inner">
+                    <img id="previewImage" src="" class="hidden w-full h-full object-contain" alt="תצוגה מקדימה">
+                    <video id="previewVideo" src="" class="hidden w-full h-full object-contain" loop></video>
+                    
+                    <div id="previewEmptyState" class="text-center p-2">
+                        <div class="text-2xl mb-1 text-purple-400">🖼</div>
+                        <p class="text-xs text-slate-300 font-medium">אין מדיה פעילה</p>
+                        <p class="text-[9px] text-slate-500">מוצגת שקופית ברירת מחדל</p>
+                    </div>
+
+                    <div class="absolute top-1.5 right-1.5 bg-slate-950/80 backdrop-blur-md text-[8px] text-purple-300 font-mono px-1.5 py-0.5 rounded border border-purple-500/30">
+                        LIVE ON PROJECTOR
+                    </div>
+                </div>
+
+                <!-- Controls under Preview Screen -->
+                <div class="flex flex-col gap-1.5 pt-1 border-t border-purple-900/30">
+                    <button id="btnClearProjBottom" class="w-full bg-purple-900/80 hover:bg-purple-800 text-purple-100 text-xs py-1.5 px-2.5 rounded-lg border border-purple-500/60 flex items-center justify-center space-x-1.5 space-x-reverse transition active:scale-95 shadow-sm font-medium">
+                        <svg class="w-3.5 h-3.5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <span>הצג רקע ברירת מחדל</span>
+                    </button>
+
+                    <div class="flex items-center justify-between gap-1.5">
+                        <label title="הגדר תמונת ברירת מחדל / שקופית המתנה" class="flex-1 cursor-pointer bg-slate-950 hover:bg-purple-950 text-purple-200 text-[10px] py-1 px-2 rounded-lg border border-purple-800/50 flex items-center justify-center space-x-1 space-x-reverse transition hover:border-purple-500/60 shadow-sm">
+                            <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            <span>הגדר שקופית המתנה</span>
+                            <input type="file" id="standbyInput" accept="image/*" class="hidden">
+                        </label>
+
+                        <!-- Standby Slide Preview Thumb -->
+                        <div class="w-7 h-7 rounded bg-slate-950 overflow-hidden shrink-0 border border-purple-800/50 flex items-center justify-center">
+                            <img id="standbyThumb" src="" class="w-full h-full object-cover hidden" alt="תצוגת המתנה">
+                            <div id="standbyThumbEmpty" class="text-[10px] text-purple-400">🖼</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Media Gallery Section -->
+        <section id="mediaGallerySection" class="flex-1 min-w-0 bg-slate-900/90 border border-purple-900/30 rounded-xl p-2.5 flex flex-col justify-between overflow-hidden shadow-xl transition-all duration-200">
+            <div class="flex items-center justify-between pb-1.5 border-b border-purple-900/30 shrink-0">
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <h2 class="text-xs font-bold text-purple-100">גלריית תמונות ווידאו</h2>
+                    <span id="mediaCountBadge" class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.2 rounded-full border border-purple-800/50">0 פריטים</span>
+                </div>
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <span class="text-[9px] text-purple-300/60 hidden sm:inline">💡 גרור תמונות/סרטונים לכאן</span>
+                    <label class="cursor-pointer bg-purple-700 hover:bg-purple-600 text-white text-xs px-2.5 py-1 rounded-md font-medium shadow transition flex items-center gap-1 border border-purple-400/30">
+                        <svg class="w-3.5 h-3.5 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span>העלה תמונות / וידאו</span>
+                        <input type="file" id="mediaInput" accept="image/*,video/*" multiple class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Multi-Row Grid Wrapper Container -->
+            <div class="flex-1 min-h-0 py-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
+                <div id="mediaGalleryContainer" class="flex flex-wrap gap-2 content-start w-full min-h-full">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="shrink-0 bg-slate-900 border-t border-purple-900/30 p-2 flex flex-col space-y-1.5 shadow-2xl relative z-20">
+        
+        <!-- Vertically Stacked Audio Racks -->
+        <div class="flex flex-col space-y-1.5">
+            
+            <!-- Audio Rack 1: Background Music -->
+            <div class="bg-slate-950/90 border border-purple-900/40 rounded-lg p-1.5 flex flex-col space-y-1">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-1.5 space-x-reverse">
+                        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                        <span class="text-[11px] font-bold text-purple-200">1. שירי רקע כלליים</span>
+                        <span id="bgAudioCountBadge" class="text-[9px] bg-purple-950 text-purple-300 px-1.5 py-0.2 rounded-full border border-purple-800/40">0</span>
+                    </div>
+                    <label class="cursor-pointer bg-slate-900 hover:bg-purple-950/80 text-purple-200 text-[9px] px-2 py-0.5 rounded border border-purple-800/50 transition flex items-center gap-1">
+                        <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span>הוסף לשיר רקע</span>
+                        <input type="file" id="bgAudioInput" accept="audio/*" multiple class="hidden">
+                    </label>
+                </div>
+
+                <div id="bgAudioRack" class="h-9 w-full bg-slate-900/60 border border-dashed border-purple-900/50 hover:border-purple-500/60 rounded-md p-1 overflow-x-auto custom-scrollbar flex items-center space-x-1 space-x-reverse transition">
+                    <div id="bgAudioListContainer" class="flex items-center space-x-1 space-x-reverse"></div>
+                    <div id="bgAudioRackEmpty" class="w-full text-center text-[9px] text-purple-300/40">
+                        גרור לכאן שירי רקע כלליים
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audio Rack 2: Slideshow Music -->
+            <div class="bg-slate-950/90 border border-purple-900/40 rounded-lg p-1.5 flex flex-col space-y-1">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-1.5 space-x-reverse">
+                        <span class="w-2 h-2 rounded-full bg-fuchsia-400"></span>
+                        <span class="text-[11px] font-bold text-fuchsia-200">2. שירים לתמונות ומצגות</span>
+                        <span id="slideshowAudioCountBadge" class="text-[9px] bg-fuchsia-950 text-fuchsia-300 px-1.5 py-0.2 rounded-full border border-fuchsia-800/40">0</span>
+                    </div>
+                    <label class="cursor-pointer bg-slate-900 hover:bg-fuchsia-950/80 text-fuchsia-200 text-[9px] px-2 py-0.5 rounded border border-fuchsia-800/50 transition flex items-center gap-1">
+                        <svg class="w-3 h-3 text-fuchsia-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span>הוסף לשיר תמונה</span>
+                        <input type="file" id="slideshowAudioInput" accept="audio/*" multiple class="hidden">
+                    </label>
+                </div>
+
+                <div id="slideshowAudioRack" class="h-9 w-full bg-slate-900/60 border border-dashed border-fuchsia-900/50 hover:border-fuchsia-500/60 rounded-md p-1 overflow-x-auto custom-scrollbar flex items-center space-x-1 space-x-reverse transition">
+                    <div id="slideshowAudioListContainer" class="flex items-center space-x-1 space-x-reverse"></div>
+                    <div id="slideshowAudioRackEmpty" class="w-full text-center text-[9px] text-fuchsia-300/40">
+                        גרור לכאן שירים לתמונות ומצגות
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Transport Controls & Waveform Bar -->
+        <div class="bg-slate-950 border border-purple-900/40 rounded-lg p-1.5 flex flex-col justify-center space-y-1">
+            <div class="flex items-center space-x-2 space-x-reverse">
+                <button id="playPauseBtn" class="w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-900/60 transition shrink-0 border border-purple-400/30 active:scale-95">
+                    <span id="playIconContainer" class="flex items-center justify-center">
+                        <svg id="playIconSvg" class="w-3.5 h-3.5 fill-current text-white translate-x-[-1px]" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </span>
+                </button>
+
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between text-[9px] mb-0.5">
+                        <span id="trackTitleDisplay" class="font-bold text-purple-100 truncate max-w-[220px]">לא נבחר שיר</span>
+                        <div class="font-mono text-purple-300 font-semibold space-x-1 space-x-reverse">
+                            <span id="currentTimeDisplay">00:00</span>
+                            <span class="text-purple-800">/</span>
+                            <span id="durationDisplay">00:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Waveform Bar -->
+                    <div class="relative w-full h-6 bg-slate-900 rounded-md p-0.5 border border-purple-900/30 cursor-pointer flex items-center justify-between gap-[2px] group"
+                         id="waveformWrapper">
+                        
+                        <div id="hoverTooltip" class="absolute -top-5 hidden bg-purple-600 text-white text-[8px] font-mono px-1 py-0.2 rounded shadow-lg pointer-events-none transform -translate-x-1/2 z-30 border border-purple-400/40">
+                            00:00
+                        </div>
+
+                        <div id="barsContainer" dir="ltr" class="w-full h-full flex items-center justify-between gap-[1.5px] pointer-events-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-1.5 space-x-reverse shrink-0">
+                    <button id="loopBtn" title="נגן בלולאה (Loop)" class="p-1 rounded-lg bg-slate-900 text-purple-300/70 hover:text-purple-100 border border-purple-900/40 text-[9px] transition flex items-center gap-1">
+                        <svg id="loopIconSvg" class="w-3 h-3 stroke-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span class="hidden sm:inline">לופ</span>
+                    </button>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.9" class="w-14 accent-purple-500 cursor-pointer">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <audio id="audioEngine" class="hidden"></audio>
+
+    <script>
+        var db = null;
+        var mediaItems = [];
+        var audioItems = [];
+        var standbyItem = null;
+
+        var activeMedia = null;
+        var activeAudioId = null;
+        var projectorWin = null;
+
+        var isVideoActive = false;
+        var totalBars = 110;
+        var isLooping = false;
+
+        var audioEngine = null;
+        var previewVideo = null;
+        var draggedMediaIndex = null;
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;")
+                       .replace(/</g, "&lt;")
+                       .replace(/>/g, "&gt;")
+                       .replace(/"/g, "&quot;")
+                       .replace(/'/g, "&#039;");
+        }
+
+        function showNotification(msg) {
+            var toast = document.getElementById('toastNotification');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toastNotification';
+                toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-purple-900 text-white text-xs px-4 py-2 rounded-lg shadow-xl border border-purple-500/50 z-50 transition-opacity duration-300 pointer-events-none';
+                document.body.appendChild(toast);
+            }
+            toast.innerText = msg;
+            toast.classList.remove('opacity-0', 'hidden');
+            setTimeout(function() {
+                toast.classList.add('opacity-0');
+                setTimeout(function() { toast.classList.add('hidden'); }, 300);
+            }, 3000);
+        }
+
+        function initDB() {
+            return new Promise(function(resolve, reject) {
+                var request = indexedDB.open('MevaserNeymanDB', 5);
+                request.onupgradeneeded = function(e) {
+                    var database = e.target.result;
+                    if (!database.objectStoreNames.contains('media')) database.createObjectStore('media', { keyPath: 'id' });
+                    if (!database.objectStoreNames.contains('audio')) database.createObjectStore('audio', { keyPath: 'id' });
+                    if (!database.objectStoreNames.contains('settings')) database.createObjectStore('settings', { keyPath: 'key' });
+                };
+                request.onsuccess = function(e) {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = function(e) { reject(e); };
+            });
+        }
+
+        async function saveItem(storeName, item) {
+            if (!db) return;
+            var tx = db.transaction(storeName, 'readwrite');
+            await tx.objectStore(storeName).put(item);
+        }
+
+        async function removeItem(storeName, id) {
+            if (!db) return;
+            var tx = db.transaction(storeName, 'readwrite');
+            await tx.objectStore(storeName).delete(id);
+        }
+
+        async function getAllItems(storeName) {
+            if (!db) return [];
+            return new Promise(function(resolve) {
+                var tx = db.transaction(storeName, 'readonly');
+                var req = tx.objectStore(storeName).getAll();
+                req.onsuccess = function() { resolve(req.result || []); };
+            });
+        }
+
+        async function safePlay(mediaEl) {
+            if (!mediaEl) return;
+            try {
+                var playPromise = mediaEl.play();
+                if (playPromise !== undefined) {
+                    await playPromise;
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.warn('Playback error:', err);
+                }
+            }
+        }
+
+        function safePause(mediaEl) {
+            if (!mediaEl) return;
+            try {
+                mediaEl.pause();
+            } catch (err) {
+                console.warn('Pause error:', err);
+            }
+        }
+
+        async function uploadMediaFiles(e) {
+            var files = e && e.target && e.target.files ? Array.from(e.target.files) : [];
+            if (files.length > 0) {
+                await processMediaFiles(files);
+            }
+        }
+
+        async function uploadStandbyImage(e) {
+            var file = e && e.target && e.target.files ? e.target.files[0] : null;
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = async function(event) {
+                standbyItem = event.target.result;
+                await saveItem('settings', { key: 'standbyItem', value: standbyItem });
+                updateStandbyUI();
+                renderMediaGallery();
+                if (!activeMedia) {
+                    clearProjection();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function uploadAudioFiles(e, category) {
+            if (!category) category = 'bg';
+            var files = e && e.target && e.target.files ? Array.from(e.target.files) : [];
+            for (var file of files) {
+                var id = 'audio_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+                var blob = new Blob([await file.arrayBuffer()], { type: file.type });
+                var item = { id: id, name: file.name, category: category, blob: blob };
+                
+                await saveItem('audio', item);
+                audioItems.push({
+                    id: item.id,
+                    name: item.name,
+                    category: item.category,
+                    blob: item.blob,
+                    url: URL.createObjectURL(blob)
+                });
+            }
+            renderAudioRack();
+        }
+
+        async function processMediaFiles(files) {
+            for (var file of files) {
+                if (!file.type.startsWith('image') && !file.type.startsWith('video')) continue;
+                var id = 'media_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+                var blob = new Blob([await file.arrayBuffer()], { type: file.type });
+                var type = file.type.startsWith('video') ? 'video' : 'image';
+                var item = { id: id, name: file.name, type: type, blob: blob };
+                
+                await saveItem('media', item);
+                mediaItems.push({
+                    id: item.id,
+                    name: item.name,
+                    type: item.type,
+                    blob: item.blob,
+                    url: URL.createObjectURL(blob)
+                });
+            }
+            renderMediaGallery();
+        }
+
+        function renderMediaGallery() {
+            var container = document.getElementById('mediaGalleryContainer');
+            if (!container) return;
+            var badge = document.getElementById('mediaCountBadge');
+            if (badge) badge.innerText = mediaItems.length + ' פריטים';
+            container.innerHTML = '';
+
+            // Standby Tile
+            var standbyTile = document.createElement('div');
+            var isStandbyActive = !activeMedia;
+            standbyTile.className = 'relative group shrink-0 w-20 h-16 rounded-lg border-2 overflow-hidden cursor-pointer transition-all duration-200 select-none flex flex-col items-center justify-center text-center p-1 ' + (
+                isStandbyActive 
+                ? 'border-purple-400 ring-2 ring-purple-500/50 bg-purple-900/80 shadow-md shadow-purple-950/80' 
+                : 'border-purple-900/60 hover:border-purple-500 bg-slate-900/90'
+            );
+            standbyTile.onclick = function() { clearProjection(); };
+
+            if (standbyItem) {
+                standbyTile.innerHTML = `
+                    <img src="${standbyItem}" class="w-full h-full object-cover pointer-events-none opacity-60" alt="ברירת מחדל">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent flex flex-col justify-end p-0.5">
+                        <span class="text-[8px] font-bold text-purple-200 leading-none truncate">ברירת מחדל</span>
+                    </div>
+                `;
+            } else {
+                standbyTile.innerHTML = `
+                    <svg class="w-5 h-5 text-purple-400 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span class="text-[8px] font-bold text-purple-200 leading-none">ברירת מחדל</span>
+                `;
+            }
+            container.appendChild(standbyTile);
+
+            if (mediaItems.length === 0) {
+                var emptyHint = document.createElement('div');
+                emptyHint.className = 'text-[10px] text-purple-300/50 my-auto text-center flex-1 py-4 pointer-events-none';
+                emptyHint.innerText = 'גרור לכאן תמונות/סרטונים מהמחשב או לחץ על "העלה תמונות / וידאו"';
+                container.appendChild(emptyHint);
+                return;
+            }
+
+            mediaItems.forEach(function(item, index) {
+                var card = document.createElement('div');
+                card.className = 'relative group shrink-0 w-20 h-16 rounded-lg border-2 overflow-hidden cursor-pointer transition-all duration-200 select-none ' + (
+                    activeMedia && activeMedia.id === item.id 
+                    ? 'border-purple-500 ring-2 ring-purple-500/50 scale-105 shadow-md shadow-purple-950/80' 
+                    : 'border-purple-900/40 hover:border-purple-600 bg-slate-950'
+                );
+                card.draggable = true;
+
+                card.ondragstart = function(e) {
+                    draggedMediaIndex = index;
+                    e.dataTransfer.effectAllowed = 'move';
+                    card.classList.add('opacity-40');
+                };
+                card.ondragend = function() {
+                    draggedMediaIndex = null;
+                    card.classList.remove('opacity-40');
+                };
+                card.ondragover = function(e) {
+                    e.preventDefault();
+                    card.classList.add('border-purple-400');
+                };
+                card.ondragleave = function() {
+                    if (!activeMedia || activeMedia.id !== item.id) {
+                        card.classList.remove('border-purple-400');
+                    }
+                };
+                card.ondrop = async function(e) {
+                    e.preventDefault();
+                    card.classList.remove('border-purple-400');
+                    if (draggedMediaIndex !== null && draggedMediaIndex !== index) {
+                        var moved = mediaItems.splice(draggedMediaIndex, 1)[0];
+                        mediaItems.splice(index, 0, moved);
+                        renderMediaGallery();
+                    }
+                };
+
+                card.onclick = function() { selectMedia(item); };
+
+                var mediaContent = '';
+                if (item.type === 'video') {
+                    mediaContent = `<video src="${item.url}" class="w-full h-full object-cover pointer-events-none"></video>
+                    <div class="absolute top-0.5 left-0.5 bg-purple-950/90 text-purple-200 px-1 py-0.2 rounded text-[7px] font-bold border border-purple-700/50">🎬 וידאו</div>`;
+                } else {
+                    mediaContent = `<img src="${item.url}" class="w-full h-full object-cover pointer-events-none" alt="${escapeHtml(item.name)}">`;
+                }
+
+                card.innerHTML = `
+                    ${mediaContent}
+                    <div class="absolute inset-x-0 bottom-0 bg-slate-950/90 text-[8px] text-purple-200 truncate px-1 py-0.2 text-center font-mono border-t border-purple-900/30">
+                        ${escapeHtml(item.name)}
+                    </div>
+                `;
+
+                var delBtn = document.createElement('button');
+                delBtn.title = 'מחק';
+                delBtn.className = 'absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 bg-rose-600/90 hover:bg-rose-600 text-white p-0.5 rounded transition shadow';
+                delBtn.innerHTML = '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+                delBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    deleteMedia(item.id);
+                };
+                card.appendChild(delBtn);
+
+                container.appendChild(card);
+            });
+        }
+
+        async function deleteMedia(id) {
+            await removeItem('media', id);
+            mediaItems = mediaItems.filter(function(m) { return m.id !== id; });
+            if (activeMedia && activeMedia.id === id) {
+                clearProjection();
+            }
+            renderMediaGallery();
+        }
+
+        function selectMedia(item) {
+            activeMedia = item;
+            renderMediaGallery();
+
+            var imgEl = document.getElementById('previewImage');
+            var vidEl = document.getElementById('previewVideo');
+            var emptyEl = document.getElementById('previewEmptyState');
+
+            emptyEl.classList.add('hidden');
+
+            if (item.type === 'video') {
+                safePause(audioEngine);
+                isVideoActive = true;
+
+                imgEl.classList.add('hidden');
+                vidEl.src = item.url;
+                vidEl.classList.remove('hidden');
+                safePlay(vidEl);
+
+                document.getElementById('trackTitleDisplay').innerText = '🎬 סרטון: ' + item.name;
+                updatePlayPauseIcon(true);
+                updateProjectorWindow('video', item.url);
+            } else {
+                isVideoActive = false;
+                safePause(vidEl);
+                vidEl.classList.add('hidden');
+
+                imgEl.src = item.url;
+                imgEl.classList.remove('hidden');
+                updateProjectorWindow('image', item.url);
+            }
+        }
+
+        function clearProjection() {
+            activeMedia = null;
+            renderMediaGallery();
+
+            var imgEl = document.getElementById('previewImage');
+            var vidEl = document.getElementById('previewVideo');
+            var emptyEl = document.getElementById('previewEmptyState');
+
+            safePause(vidEl);
+            vidEl.classList.add('hidden');
+
+            if (standbyItem) {
+                imgEl.src = standbyItem;
+                imgEl.classList.remove('hidden');
+                emptyEl.classList.add('hidden');
+                updateProjectorWindow('image', standbyItem);
+            } else {
+                imgEl.classList.add('hidden');
+                emptyEl.classList.remove('hidden');
+                updateProjectorWindow('empty', null);
+            }
+        }
+
+        function openProjectorWindow() {
+            if (projectorWin && !projectorWin.closed) {
+                projectorWin.focus();
+                return;
+            }
+
+            projectorWin = window.open('', 'MevaserNeymanProjector', 'width=1280,height=720,menubar=no,toolbar=no,location=no');
+            if (!projectorWin) {
+                showNotification('הדפדפן חסם את החלון הקופץ. נא לאפשר חלונות קופצים בדפדפן.');
+                return;
+            }
+
+            var doc = projectorWin.document;
+            doc.open();
+            doc.write('<!DOCTYPE html><html lang="he" dir="rtl" style="height:100%;background:#000;"><head><meta charset="UTF-8"><title>מבשר ניימן הפקות - מסך מקרן בלייב</title><style>body { margin:0; padding:0; width:100%; height:100%; background:#000; overflow:hidden; display:flex; align-items:center; justify-content:center; } img, video { max-width:100%; max-height:100%; object-fit:contain; } .fs-btn { position:absolute; top:10px; right:10px; background:rgba(147,51,234,0.85); color:#fff; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-family:sans-serif; font-size:12px; z-index:99; transition:opacity 0.3s; } .fs-btn:hover { opacity:0.8; }</style></head><body><button class="fs-btn" onclick="document.documentElement.requestFullscreen(); this.style.display=\'none\';">&#x2B12; לחץ למסך מלא (F11)</button><img id="projImg" style="display:none;" alt="תמונת מקרן"><video id="projVid" style="display:none;" loop autoplay></video></body></html>');
+            doc.close();
+
+            if (activeMedia) {
+                updateProjectorWindow(activeMedia.type, activeMedia.url);
+            } else if (standbyItem) {
+                updateProjectorWindow('image', standbyItem);
+            }
+        }
+
+        function updateProjectorWindow(type, url) {
+            if (!projectorWin || projectorWin.closed) return;
+
+            var pImg = projectorWin.document.getElementById('projImg');
+            var pVid = projectorWin.document.getElementById('projVid');
+
+            if (!pImg || !pVid) return;
+
+            if (type === 'video') {
+                pImg.style.display = 'none';
+                pVid.src = url;
+                pVid.style.display = 'block';
+                safePlay(pVid);
+            } else if (type === 'image') {
+                safePause(pVid);
+                pVid.style.display = 'none';
+                pImg.src = url;
+                pImg.style.display = 'block';
+            } else {
+                safePause(pVid);
+                pVid.style.display = 'none';
+                pImg.style.display = 'none';
+            }
+        }
+
+        function setupDragAndDropAudio() {
+            var setupZone = function(rackId, category) {
+                var rack = document.getElementById(rackId);
+                if (!rack) return;
+                rack.ondragover = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    rack.classList.add('border-purple-400', 'bg-purple-950/40');
+                };
+                rack.ondragleave = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    rack.classList.remove('border-purple-400', 'bg-purple-950/40');
+                };
+                rack.ondrop = async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    rack.classList.remove('border-purple-400', 'bg-purple-950/40');
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        var audioFiles = Array.from(e.dataTransfer.files).filter(function(f) { return f.type.startsWith('audio'); });
+                        if (audioFiles.length > 0) {
+                            uploadAudioFiles({ target: { files: audioFiles } }, category);
+                        }
+                    }
+                };
+            };
+
+            setupZone('bgAudioRack', 'bg');
+            setupZone('slideshowAudioRack', 'slideshow');
+        }
+
+        function setupDragAndDropMedia() {
+            var section = document.getElementById('mediaGallerySection');
+            var container = document.getElementById('mediaGalleryContainer');
+
+            [section, container].forEach(function(el) {
+                if (!el) return;
+                el.ondragover = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    section.classList.add('border-purple-400', 'bg-purple-950/40');
+                };
+                el.ondragleave = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    section.classList.remove('border-purple-400', 'bg-purple-950/40');
+                };
+                el.ondrop = async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    section.classList.remove('border-purple-400', 'bg-purple-950/40');
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        var mediaFiles = Array.from(e.dataTransfer.files).filter(function(f) {
+                            return f.type.startsWith('image') || f.type.startsWith('video');
+                        });
+                        if (mediaFiles.length > 0) {
+                            await processMediaFiles(mediaFiles);
+                        }
+                    }
+                };
+            });
+        }
+
+        function renderAudioRack() {
+            var bgContainer = document.getElementById('bgAudioListContainer');
+            var bgEmpty = document.getElementById('bgAudioRackEmpty');
+            var bgTracks = audioItems.filter(function(a) { return a.category === 'bg'; });
+            var bgBadge = document.getElementById('bgAudioCountBadge');
+            if (bgBadge) bgBadge.innerText = bgTracks.length;
+
+            if (bgContainer) {
+                bgContainer.innerHTML = '';
+                if (bgTracks.length === 0 && bgEmpty) bgEmpty.classList.remove('hidden');
+                else if (bgEmpty) bgEmpty.classList.add('hidden');
+
+                bgTracks.forEach(function(item) {
+                    bgContainer.appendChild(createAudioCard(item));
+                });
+            }
+
+            var ssContainer = document.getElementById('slideshowAudioListContainer');
+            var ssEmpty = document.getElementById('slideshowAudioRackEmpty');
+            var ssTracks = audioItems.filter(function(a) { return a.category === 'slideshow'; });
+            var ssBadge = document.getElementById('slideshowAudioCountBadge');
+            if (ssBadge) ssBadge.innerText = ssTracks.length;
+
+            if (ssContainer) {
+                ssContainer.innerHTML = '';
+                if (ssTracks.length === 0 && ssEmpty) ssEmpty.classList.remove('hidden');
+                else if (ssEmpty) ssEmpty.classList.add('hidden');
+
+                ssTracks.forEach(function(item) {
+                    ssContainer.appendChild(createAudioCard(item));
+                });
+            }
+        }
+
+        function createAudioCard(item) {
+            var isActive = activeAudioId === item.id && !isVideoActive;
+            var isFuchsia = item.category === 'slideshow';
+
+            var card = document.createElement('div');
+            card.className = 'shrink-0 bg-slate-900 hover:bg-purple-950/50 border px-1.5 py-0.5 rounded-md cursor-pointer flex items-center space-x-1 space-x-reverse transition ' + (
+                isActive 
+                ? (isFuchsia ? 'border-fuchsia-400 text-fuchsia-200 ring-2 ring-fuchsia-500/40 bg-fuchsia-950/80 font-bold' : 'border-purple-400 text-purple-200 ring-2 ring-purple-500/40 bg-purple-950/80 font-bold')
+                : (isFuchsia ? 'border-fuchsia-900/30 text-fuchsia-300/80 hover:border-fuchsia-600' : 'border-purple-900/30 text-purple-300/80 hover:border-purple-600')
+            );
+
+            card.onclick = function() { playAudioTrack(item.id); };
+
+            card.innerHTML = `
+                <svg class="w-2.5 h-2.5 ${isFuchsia ? 'text-fuchsia-400' : 'text-purple-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+                <span class="text-[10px] max-w-[110px] truncate">${escapeHtml(item.name)}</span>
+            `;
+
+            var delBtn = document.createElement('button');
+            delBtn.className = 'text-purple-400/60 hover:text-rose-400 p-0.5 rounded transition';
+            delBtn.innerHTML = '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+            delBtn.onclick = function(e) {
+                e.stopPropagation();
+                deleteAudioTrack(item.id);
+            };
+            card.appendChild(delBtn);
+
+            return card;
+        }
+
+        async function deleteAudioTrack(id) {
+            await removeItem('audio', id);
+            audioItems = audioItems.filter(function(a) { return a.id !== id; });
+
+            if (activeAudioId === id) {
+                safePause(audioEngine);
+                activeAudioId = null;
+                document.getElementById('trackTitleDisplay').innerText = 'לא נבחר שיר';
+                updatePlayPauseIcon(false);
+            }
+            renderAudioRack();
+        }
+
+        function playAudioTrack(id) {
+            var track = audioItems.find(function(a) { return a.id === id; });
+            if (!track) return;
+
+            if (isVideoActive) {
+                safePause(previewVideo);
+                isVideoActive = false;
+            }
+
+            activeAudioId = id;
+
+            audioEngine.src = track.url;
+            safePlay(audioEngine);
+
+            var prefix = track.category === 'slideshow' ? '🎵 שיר מצגת' : '🎼 שירי רקע';
+            document.getElementById('trackTitleDisplay').innerText = prefix + ': ' + track.name;
+            updatePlayPauseIcon(true);
+
+            renderAudioRack();
+        }
+
+        function togglePlayPause() {
+            if (isVideoActive) {
+                if (previewVideo.paused) {
+                    safePlay(previewVideo);
+                    updatePlayPauseIcon(true);
+                } else {
+                    safePause(previewVideo);
+                    updatePlayPauseIcon(false);
+                }
+                return;
+            }
+
+            if (!activeAudioId && audioItems.length > 0) {
+                playAudioTrack(audioItems[0].id);
+                return;
+            }
+
+            if (audioEngine.paused) {
+                safePlay(audioEngine);
+                updatePlayPauseIcon(true);
+            } else {
+                safePause(audioEngine);
+                updatePlayPauseIcon(false);
+            }
+        }
+
+        function updatePlayPauseIcon(isPlaying) {
+            var container = document.getElementById('playIconContainer');
+            if (!container) return;
+            if (isPlaying) {
+                container.innerHTML = `<svg class="w-3.5 h-3.5 fill-current text-white" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+            } else {
+                container.innerHTML = `<svg class="w-3.5 h-3.5 fill-current text-white translate-x-[-1px]" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+            }
+        }
+
+        function initWaveformBars() {
+            var container = document.getElementById('barsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            for (var i = 0; i < totalBars; i++) {
+                var bar = document.createElement('div');
+                bar.className = 'w-[1.5px] rounded-full wave-bar-idle transition-colors duration-75';
+                var randomHeight = Math.floor(Math.random() * 65) + 35;
+                bar.style.height = randomHeight + '%';
+                bar.id = 'bar_' + i;
+                container.appendChild(bar);
+            }
+        }
+
+        function setupAudioEngineListeners() {
+            if (!audioEngine) return;
+            audioEngine.ontimeupdate = updateProgress;
+            if (previewVideo) {
+                previewVideo.ontimeupdate = function() {
+                    if (isVideoActive) updateProgress();
+                };
+            }
+
+            audioEngine.onended = function() {
+                if (isLooping) {
+                    audioEngine.currentTime = 0;
+                    safePlay(audioEngine);
+                } else {
+                    updatePlayPauseIcon(false);
+                }
+            };
+
+            if (previewVideo) {
+                previewVideo.onended = function() {
+                    if (isLooping && isVideoActive) {
+                        previewVideo.currentTime = 0;
+                        safePlay(previewVideo);
+                    }
+                };
+            }
+        }
+
+        function updateProgress() {
+            var mediaObj = isVideoActive ? previewVideo : audioEngine;
+            if (!mediaObj || !mediaObj.duration) return;
+
+            var cur = mediaObj.currentTime;
+            var dur = mediaObj.duration;
+            var progress = cur / dur;
+
+            var curDisp = document.getElementById('currentTimeDisplay');
+            var durDisp = document.getElementById('durationDisplay');
+            if (curDisp) curDisp.innerText = formatTime(cur);
+            if (durDisp) durDisp.innerText = formatTime(dur);
+
+            var filledBars = Math.floor(progress * totalBars);
+            for (var i = 0; i < totalBars; i++) {
+                var bar = document.getElementById('bar_' + i);
+                if (!bar) continue;
+                if (i <= filledBars) {
+                    bar.className = 'w-[1.5px] rounded-full wave-bar-active transition-colors duration-75';
+                } else {
+                    bar.className = 'w-[1.5px] rounded-full wave-bar-idle transition-colors duration-75';
+                }
+            }
+        }
+
+        function seekWaveform(e) {
+            var mediaObj = isVideoActive ? previewVideo : audioEngine;
+            if (!mediaObj || !mediaObj.duration) return;
+
+            var wrapper = document.getElementById('waveformWrapper');
+            if (!wrapper) return;
+            var rect = wrapper.getBoundingClientRect();
+            var clickX = e.clientX - rect.left;
+            var pct = Math.max(0, Math.min(1, clickX / rect.width));
+
+            mediaObj.currentTime = pct * mediaObj.duration;
+            updateProgress();
+        }
+
+        function hoverWaveform(e) {
+            var mediaObj = isVideoActive ? previewVideo : audioEngine;
+            var tooltip = document.getElementById('hoverTooltip');
+            var wrapper = document.getElementById('waveformWrapper');
+            if (!tooltip || !wrapper) return;
+
+            var rect = wrapper.getBoundingClientRect();
+            var clickX = e.clientX - rect.left;
+
+            tooltip.style.left = clickX + 'px';
+            tooltip.classList.remove('hidden');
+
+            var targetTime = (mediaObj && mediaObj.duration) ? (Math.max(0, Math.min(1, clickX / rect.width)) * mediaObj.duration) : 0;
+            tooltip.innerText = formatTime(targetTime);
+        }
+
+        function leaveWaveform() {
+            var tooltip = document.getElementById('hoverTooltip');
+            if (tooltip) tooltip.classList.add('hidden');
+        }
+
+        function formatTime(sec) {
+            if (isNaN(sec) || !isFinite(sec) || sec < 0) return '00:00';
+            var m = Math.floor(sec / 60);
+            var s = Math.floor(sec % 60);
+            return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+        }
+
+        function changeVolume(val) {
+            if (audioEngine) audioEngine.volume = val;
+            if (previewVideo) previewVideo.volume = val;
+        }
+
+        function toggleLoop() {
+            isLooping = !isLooping;
+            
+            if (audioEngine) audioEngine.loop = isLooping;
+            if (previewVideo) previewVideo.loop = isLooping;
+
+            var loopBtn = document.getElementById('loopBtn');
+            if (loopBtn) {
+                if (isLooping) {
+                    loopBtn.className = 'p-1 rounded-lg bg-purple-600 text-white border border-purple-400 shadow-md shadow-purple-900/80 text-[9px] transition flex items-center gap-1 font-bold';
+                } else {
+                    loopBtn.className = 'p-1 rounded-lg bg-slate-900 text-purple-300/70 hover:text-purple-100 border border-purple-900/40 text-[9px] transition flex items-center gap-1';
+                }
+            }
+        }
+
+        async function resetData() {
+            if (!db) return;
+            var tx = db.transaction(['media', 'audio', 'settings'], 'readwrite');
+            await tx.objectStore('media').clear();
+            await tx.objectStore('audio').clear();
+            await tx.objectStore('settings').clear();
+            location.reload();
+        }
+
+        function updateStandbyUI() {
+            var standbyThumb = document.getElementById('standbyThumb');
+            var standbyThumbEmpty = document.getElementById('standbyThumbEmpty');
+
+            if (standbyItem) {
+                if (standbyThumb) {
+                    standbyThumb.src = standbyItem;
+                    standbyThumb.classList.remove('hidden');
+                }
+                if (standbyThumbEmpty) standbyThumbEmpty.classList.add('hidden');
+            } else {
+                if (standbyThumb) standbyThumb.classList.add('hidden');
+                if (standbyThumbEmpty) standbyThumbEmpty.classList.remove('hidden');
+            }
+        }
+
+        async function loadSavedData() {
+            try {
+                var savedMedia = await getAllItems('media');
+                mediaItems = savedMedia.map(function(item) {
+                    return {
+                        id: item.id,
+                        name: item.name,
+                        type: item.type,
+                        blob: item.blob,
+                        url: item.blob ? URL.createObjectURL(item.blob) : item.url
+                    };
+                });
+                renderMediaGallery();
+
+                var savedAudio = await getAllItems('audio');
+                audioItems = savedAudio.map(function(item) {
+                    return {
+                        id: item.id,
+                        name: item.name,
+                        category: item.category,
+                        blob: item.blob,
+                        url: item.blob ? URL.createObjectURL(item.blob) : item.url
+                    };
+                });
+                renderAudioRack();
+
+                var settings = await getAllItems('settings');
+                var standbySetting = settings.find(function(s) { return s.key === 'standbyItem'; });
+                if (standbySetting && standbySetting.value) {
+                    standbyItem = standbySetting.value;
+                    updateStandbyUI();
+                }
+            } catch (err) {
+                console.error('שגיאה בטעינת נתונים שמורים:', err);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', async function() {
+            audioEngine = document.getElementById('audioEngine');
+            previewVideo = document.getElementById('previewVideo');
+
+            // Header controls
+            var btnOpenProjector = document.getElementById('btnOpenProjector');
+            if (btnOpenProjector) btnOpenProjector.addEventListener('click', openProjectorWindow);
+
+            var btnResetData = document.getElementById('btnResetData');
+            if (btnResetData) btnResetData.addEventListener('click', resetData);
+
+            // Clear projector buttons
+            var btnClearProjTop = document.getElementById('btnClearProjTop');
+            if (btnClearProjTop) btnClearProjTop.addEventListener('click', clearProjection);
+
+            var btnClearProjBottom = document.getElementById('btnClearProjBottom');
+            if (btnClearProjBottom) btnClearProjBottom.addEventListener('click', clearProjection);
+
+            // File inputs
+            var mediaInput = document.getElementById('mediaInput');
+            if (mediaInput) mediaInput.addEventListener('change', uploadMediaFiles);
+
+            var standbyInput = document.getElementById('standbyInput');
+            if (standbyInput) standbyInput.addEventListener('change', uploadStandbyImage);
+
+            var bgAudioInput = document.getElementById('bgAudioInput');
+            if (bgAudioInput) bgAudioInput.addEventListener('change', function(e) { uploadAudioFiles(e, 'bg'); });
+
+            var slideshowAudioInput = document.getElementById('slideshowAudioInput');
+            if (slideshowAudioInput) slideshowAudioInput.addEventListener('change', function(e) { uploadAudioFiles(e, 'slideshow'); });
+
+            // Player controls
+            var playPauseBtn = document.getElementById('playPauseBtn');
+            if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlayPause);
+
+            var loopBtn = document.getElementById('loopBtn');
+            if (loopBtn) loopBtn.addEventListener('click', toggleLoop);
+
+            var volumeSlider = document.getElementById('volumeSlider');
+            if (volumeSlider) volumeSlider.addEventListener('input', function(e) { changeVolume(e.target.value); });
+
+            // Waveform events
+            var waveformWrapper = document.getElementById('waveformWrapper');
+            if (waveformWrapper) {
+                waveformWrapper.addEventListener('click', seekWaveform);
+                waveformWrapper.addEventListener('mousemove', hoverWaveform);
+                waveformWrapper.addEventListener('mouseleave', leaveWaveform);
+            }
+
+            await initDB();
+            initWaveformBars();
+            await loadSavedData();
+            setupDragAndDropAudio();
+            setupDragAndDropMedia();
+            setupAudioEngineListeners();
+        });
+    </script>
+</body>
+</html>
+```
